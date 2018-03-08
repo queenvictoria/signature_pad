@@ -35,7 +35,7 @@ function SignaturePad(canvas, options) {
   if (opts.events && opts.events.intersect) {
     // plugin for interset event
     this.intersectEvent = new IntersectEvent({ context: this, callback: opts.events.intersect });
-    this._canvas.addEventListener('strokeUpdate', function _handleStrokeUpdate(e) {
+    this._canvas.addEventListener('strokeUpdate', (e) => {
       self.intersectEvent.intersectPath(e.detail.path, e.detail.point);
     });
   }

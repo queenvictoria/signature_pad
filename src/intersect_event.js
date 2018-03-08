@@ -6,6 +6,7 @@ function IntersectEvent(opts) {
   this.callback = opts.callback;
   this.hitOff = opts.hitOff || 0;
 
+  this._strokeWidth = this.context._strokeWidth;
   this._reset();
 }
 
