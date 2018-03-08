@@ -1,5 +1,6 @@
 import Point from './point';
 import Bezier from './bezier';
+import IntersectEvent from './intersect_event';
 import throttle from './throttle';
 
 function SignaturePad(canvas, options) {
@@ -29,6 +30,15 @@ function SignaturePad(canvas, options) {
   this._canvas = canvas;
   this._ctx = canvas.getContext('2d');
   this.clear();
+
+  // plugins
+  if (opts.events && opts.events.intersect) {
+    // plugin for interset event
+    this.intersectEvent = new IntersectEvent({ context: this, callback: opts.events.intersect });
+    this._canvas.addEventListener('strokeUpdate', function _handleStrokeUpdate(e) {
+      self.intersectEvent.intersectPath(e.detail.path, e.detail.point);
+    });
+  }
 
   // We need add these inline so they are available to unbind while still having
   // access to 'self' we could use _.bind but it's not worth adding a dependency.
@@ -161,6 +171,20 @@ SignaturePad.prototype._strokeUpdate = function (event) {
   const lastPointGroup = this._data[this._data.length - 1];
   const lastPoint = lastPointGroup && lastPointGroup[lastPointGroup.length - 1];
   const isLastPointTooClose = lastPoint && point.distanceTo(lastPoint) < this.minDistance;
+
+  // Usecase : check if intersectEvent can arise via event
+  if (this.intersectEvent) {
+    if (lastPointGroup.length >= 3) {
+      const e = new CustomEvent('strokeUpdate', {
+        detail: {
+          path: lastPointGroup,
+          point,
+        },
+      });
+
+      this._canvas.dispatchEvent(e);
+    }
+  }
 
   // Skip this point if it's too close to the previous one
   if (!(lastPoint && isLastPointTooClose)) {
